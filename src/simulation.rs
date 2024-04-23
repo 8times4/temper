@@ -227,9 +227,11 @@ async fn run(
 }
 
 pub async fn simulate(transaction: SimulationRequest, config: Config) -> Result<Json, Rejection> {
-    let fork_url = config
-        .fork_url
-        .unwrap_or(chain_id_to_fork_url(transaction.chain_id)?);
+    let fork_url = if let Some(url) = config.fork_url {
+        url
+    } else {
+        chain_id_to_fork_url(transaction.chain_id)?
+    };
     let mut evm = Evm::new(
         None,
         fork_url,
@@ -238,6 +240,10 @@ pub async fn simulate(transaction: SimulationRequest, config: Config) -> Result<
         true,
         config.etherscan_key,
     );
+
+    // println!("EVM Config: {:?}", evm);
+
+    log::debug!("Current Chain ID: {}", evm.get_chain_id());
 
     if evm.get_chain_id() != Uint::from(transaction.chain_id) {
         return Err(warp::reject::custom(IncorrectChainIdError()));
@@ -262,9 +268,11 @@ pub async fn simulate_bundle(
     let first_block_number = transactions[0].block_number;
     let first_block_timestamp = transactions[0].block_timestamp;
 
-    let fork_url = config
-        .fork_url
-        .unwrap_or(chain_id_to_fork_url(first_chain_id)?);
+    let fork_url = if let Some(url) = config.fork_url {
+        url
+    } else {
+        chain_id_to_fork_url(first_chain_id)?
+    };
     let mut evm = Evm::new(
         None,
         fork_url,
@@ -315,9 +323,11 @@ pub async fn simulate_stateful_new(
     config: Config,
     state: Arc<SharedSimulationState>,
 ) -> Result<Json, Rejection> {
-    let fork_url = config
-        .fork_url
-        .unwrap_or(chain_id_to_fork_url(stateful_simulation_request.chain_id)?);
+    let fork_url = if let Some(url) = config.fork_url {
+        url
+    } else {
+        chain_id_to_fork_url(stateful_simulation_request.chain_id)?
+    };
     let mut evm = Evm::new(
         None,
         fork_url,
