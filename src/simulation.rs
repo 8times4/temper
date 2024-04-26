@@ -241,10 +241,6 @@ pub async fn simulate(transaction: SimulationRequest, config: Config) -> Result<
         config.etherscan_key,
     );
 
-    // println!("EVM Config: {:?}", evm);
-
-    log::debug!("Current Chain ID: {}", evm.get_chain_id());
-
     if evm.get_chain_id() != Uint::from(transaction.chain_id) {
         return Err(warp::reject::custom(IncorrectChainIdError()));
     }
